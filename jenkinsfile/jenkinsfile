@@ -1,6 +1,23 @@
 pipeline {
   agent any
+  environment {
+    GOOGLE_APPLICATION_CREDENTIALS = credentials('764dfc7a-6e84-4da4-bc1a-6f421c27f189')
+    CLUSTER_NAME = 'kobilcase-cluster'
+    CLUSTER_ZONE = 'us-central1'
+    DOCKER_USER = credentials(f3553d7d-faa2-41e3-90c5-ff37e59e2ff6) 
+    DOCKER_PASS = credentials(f3553d7d-faa2-41e3-90c5-ff37e59e2ff6)
+  
   stages {
+    stage('Authenticate with GCP') {
+      steps {
+        script {
+          sh 'gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS'
+          sh 'gcloud config set project $PROJECT_ID'
+          sh 'gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE'
+        }
+      }
+    }
+    
     stage('Clone Repository') {
       steps {
         sh '''
@@ -10,6 +27,7 @@ pipeline {
         '''
       }
     }
+    
     stage('Build Docker Image') {
       steps {
         sh '''
@@ -19,6 +37,7 @@ pipeline {
         '''
       }
     }
+    
     stage('Push Docker Image') {
       steps {
         sh '''
@@ -32,11 +51,12 @@ pipeline {
         '''
       }
     }
+    
     stage('Deploy to Kubernetes') {
       steps {
         sh '''
           echo "Starting Kubernetes deployment..."
-          helm upgrade --install webproje ./webProje-chart --namespace webproje
+          helm upgrade --install webproje ./webProje-chart --namespace webproje --set image.repository=ayseyavass/webProje,image.tag=latest
           echo "Helm deployment completed"
           
           echo "Checking pod status..."
@@ -52,6 +72,7 @@ pipeline {
         '''
       }
     }
+    
     stage('Check Deployment Status') {
       steps {
         sh '''
@@ -66,6 +87,7 @@ pipeline {
       }
     }
   }
+  
   post {
     success {
       sh 'echo "Pipeline executed successfully! All stages completed."'
