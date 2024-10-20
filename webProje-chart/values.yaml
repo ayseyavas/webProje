@@ -1,38 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: webProje-deployment
+  name: webproje-deployment
   labels:
-    app: webProje
+    app: webproje
 spec:
-  replicas: 2 
+  replicas: 2
   selector:
     matchLabels:
-      app: webProje
+      app: webproje
   template:
     metadata:
       labels:
-        app: webProje
+        app: webproje
     spec:
       containers:
-      - name: webProje
-        image: webProje/webProje:latest 
+      - name: webproje
+        image: ayseyavass/webproje:latest
         ports:
-        - containerPort: 80 
+        - containerPort: 80
         env:
-        - name: postgresqlDatabase
+        - name: POSTGRES_DB
           value: VTKitapSatis
-        - name: postgresqlUsername
+        - name: POSTGRES_USER
           value: postgres
-        - name: postgresqlPassword
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: Password  
-              key: 1234
-        - name: Host
-          value: localhost 
-        - name: Port
-          value: 5432
+              name: postgres-secret 
+              key: password
+        - name: POSTGRES_HOST
+          value: postgres-service 
+        - name: POSTGRES_PORT
+          value: "5432" 
         resources:
           requests:
             memory: "512Mi"
@@ -41,49 +41,23 @@ spec:
             memory: "1Gi"
             cpu: "1"
         volumeMounts:
-        - name: webProje-volume
+        - name: webproje-volume
           mountPath: /app/data
-
       volumes:
-      - name: webProje-volume
+      - name: webproje-volume
         persistentVolumeClaim:
-          claimName: webProje-pv-claim  
+          claimName: webproje-pv-claim
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: webProje-service
+  name: webproje-service
   labels:
-    app: webProje
+    app: webproje
 spec:
   type: LoadBalancer
   ports:
-  - port: 80  # External Port
-    targetPort: 80  # Internal Port in the Pod
+  - port: 80
+    targetPort: 80
   selector:
-    app: webProje
-
-
-nodeSelector:
-  cloud.google.com/gke-nodepool: default-pool
-
-tolerations:
-  - key: "key1"
-    operator: "Equal"
-    value: "value1"
-    effect: "NoSchedule"
-
-persistence:
-  enabled: true
-  storageClass: "standard"
-  accessModes:
-    - ReadWriteOnce
-  size: 1Gi
-
-ingress:
-  enabled: true
-  className: "nginx"
-  hosts:
-    - host: webproje.example.com
-      paths:
-        - /
+    app: webproje
