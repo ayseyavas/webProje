@@ -3,42 +3,81 @@ pipeline {
   stages {
     stage('Clone Repository') {
       steps {
-        git 'https://github.com/ayseyavas/webProje.git'
+        script {
+          echo "Starting repository clone..."
+          git 'https://github.com/ayseyavas/webProje.git'
+          echo "Repository clone completed successfully"
+        }
       }
     }
     stage('Build Docker Image') {
       steps {
-        sh 'docker build -t webProje .'
+        script {
+          echo "Starting Docker build..."
+          sh 'docker build -t webProje .'
+          echo "Docker image built successfully"
+        }
       }
     }
     stage('Push Docker Image') {
       steps {
-        withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
-          sh 'docker tag webProje ayseyavass/webProje:latest'
-          sh 'docker push ayseyavass/webProje:latest'
+        script {
+          echo "Starting Docker image push..."
+          withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+            echo "Docker login successful"
+            sh 'docker tag webProje ayseyavass/webProje:latest'
+            echo "Image tagged successfully"
+            sh 'docker push ayseyavass/webProje:latest'
+            echo "Image pushed to Docker Hub successfully"
+          }
         }
       }
     }
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'helm upgrade --install webproje ./webProje-chart --namespace webproje'
+        script {
+          echo "Starting Kubernetes deployment..."
+          sh '''
+            helm upgrade --install webproje ./webProje-chart --namespace webproje
+            echo "Helm deployment completed"
+            
+            echo "Checking pod status..."
+            kubectl get pods -n webproje
+            
+            echo "Checking deployment details..."
+            kubectl get deployments -n webproje
+            
+            echo "Checking service status..."
+            kubectl get services -n webproje
+          '''
+          echo "Kubernetes deployment process completed"
+        }
       }
     }
     stage('Check Deployment Status') {
       steps {
         script {
+          echo "Checking rollout status..."
           def deploymentStatus = sh(
             script: 'kubectl rollout status deployment/webproje --timeout=300s',
             returnStatus: true
           )
           if (deploymentStatus == 0) {
-            echo 'Deployment succeeded!'
+            echo 'Deployment succeeded! Application is ready.'
           } else {
-            error('Deployment failed!')
+            error('Deployment failed! Check Kubernetes logs for details.')
           }
         }
       }
+    }
+  }
+  post {
+    success {
+      echo "Pipeline executed successfully! All stages completed."
+    }
+    failure {
+      echo "Pipeline failed! Check the logs above for errors."
     }
   }
 }
