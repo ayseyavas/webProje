@@ -1,0 +1,44 @@
+﻿@model Book
+
+
+<form method="post">
+    <input asp-for="Id" hidden/>
+    <div class="border p-3 mt-5">
+        <div class="row pb-3 ">
+            <h2 class="text-primary">Delete Book</h2>
+            </hr>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="Title" class="p-2"></label>
+            <input asp-for="Title" class="form_control" disabeld/>
+        </div>
+        <div class="mb-3">
+
+            <label asp-for="Price" class="p-2"></label>
+            <input asp-for="Price" class="form_control" disabeld />
+        </div>
+        <div class="mb-3">
+
+            <label asp-for="Author" class="p-2"></label>
+            <input asp-for="Author" class="form_control" disabeld />
+        </div>
+        <div class="mb-3">
+
+            <label asp-for="Description" class="p-2"></label>
+            <input asp-for="Description" class="form_control" disabeld />
+        </div>
+
+
+        <button type="submit"  class="btn btn-lg btn-primary" style="width:250px">Delete Book</button>
+
+        <a asp-controller="Book" asp-action="Index" class="btn btn-lg btn-primary" style="width:250px"> Show Books </a>
+
+
+
+    </div>
+
+
+</form>

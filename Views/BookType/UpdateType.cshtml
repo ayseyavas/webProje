@@ -1,0 +1,29 @@
+﻿@model BookType
+
+
+<form method="post">
+    <div class="border p-3 mt-5">
+        <div class="row pb-3 ">
+            <h2 class="text-primary">Update Book Type</h2>
+            </hr>
+
+        </div>
+
+        <div class="mb-3">
+
+            <label asp-for="name" class="p-2"></label>
+            <input asp-for="name" class="form_control"  />
+            <span asp-validation-for="name" class="text-danger"></span>
+        </div>
+
+
+        <button type="submit" class="btn btn-lg btn-primary" style="width:250px">Update Book Type</button>
+
+        <a asp-controller="BookType" asp-action="Index" class="btn btn-lg btn-primary" style="width:250px"> Show Book Type </a>
+
+
+
+    </div>
+
+
+</form>

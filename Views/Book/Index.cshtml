@@ -1,0 +1,96 @@
+﻿@using webProje.Utility
+@model List<Book>
+
+@if (TempData["Success"] != null)
+{
+    <h3>@TempData["Success"]</h3>
+}
+
+
+<div class="container">
+    <div class="row pt-3 pb-4"
+        <div>
+            <h1>Books</h1>
+            </div>
+            </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th align="center" valign="middle">
+                    Id
+                </th>
+                <th align="center" valign="middle">
+                    Picture
+                </th>
+                <th align="center" valign="middle">
+                    Title
+                </th>
+                <th align="center" valign="middle">
+                    Description
+                </th>
+                <th align="center" valign="middle">
+                    Author
+                </th>
+                <th align="center" valign="middle">
+                    Price
+                </th>
+                <th align="center" valign="middle">
+                    Book Type
+                </th>
+
+                @if (User.IsInRole(UserRoles.Role_Admin))
+                {
+                    <th>
+                    </th>
+                    <th>
+
+                    </th>
+                }
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var book in Model)
+            {
+                <tr>
+                    <td align="center" valign="middle">
+                        <img src="@book.PicUrl" style="border-radius: 7px; border: 1px solid #bbb9b9 ;
+                            max-width: 145px; max: 275px;" />
+
+
+                    </td>
+                    <td align="center" valign="middle">@book.Id</td>
+                    <td align="center" valign="middle">@book.Title</td>
+                    <td align="center" valign="middle">@book.Description</td>
+                    <td align="center" valign="middle">@book.Author</td>
+                    <td align="center" valign="middle">@book.Price</td>
+                    <td align="center" valign="middle">@book.BookType.name</td>
+
+                    @if (User.IsInRole(UserRoles.Role_Admin))
+                    {
+                        <td align="center" valign="middle">
+                            <a asp-controller="Book" asp-action="AddUpdateBook" asp-route-id="@book.Id" type="button" class="btn btn-success style="width:100px">Güncelle</a>
+                        </td>
+                        <td align="center" valign="middle">
+                            <a asp-controller="Book" asp-action="DeleteBook" asp-route-id="@book.Id" type="button" class="btn btn-danger" style="width:100px">Sil</a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+
+    </table>
+
+    <div class="row pt-3 pb-2">
+        @if (User.IsInRole(UserRoles.Role_Admin))
+        {
+            <div>
+                <a asp-controller="Book" asp-action="AddUpdateBook" class="btn btn-lg btn-primary" align="center" valign="middle" type="button">
+                    Add New Book
+                </a>
+            </div>
+        }
+    </div>
+
+</div>

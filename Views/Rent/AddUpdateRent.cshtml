@@ -1,0 +1,54 @@
+﻿@model Rent
+
+
+<form method="post" enctype="multipart/form-data">
+    <div class="row">
+
+
+        <div class="border p-3 mt-5">
+            <div class="row pb-3 ">
+                <h2 class="text-primary">@(Model == null ? "New Rent" : "Update Rent")</h2>
+                <hr />
+
+            </div>
+
+            <div class="mb-3">
+
+                <label asp-for="StudentId" class="p-0"></label>
+                <input asp-for="StudentId" class="form-control" />
+            </div>
+            <div class="mb-3">
+
+                <label asp-for="BookId" class="p-0"></label>
+                <select asp-for="BookId" asp-items="ViewBag.booklist" class="form-select">
+                </select>
+
+            </div>
+            
+
+            @if (Model != null)
+            {
+                <button type="submit" class="btn btn-lg btn-primary" style="width:250px">Update Rent </button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-lg btn-primary" style="width:250px">New Rent Book </button>
+            }
+
+
+            <a asp-controller="Rent" asp-action="Index" class="btn btn-lg btn-primary" style="width:250px"> Show Rents </a>
+
+
+
+        </div>
+
+
+
+
+    </div>
+
+
+
+
+
+</form>

@@ -1,0 +1,47 @@
+pipeline {
+  agent any
+  stages {
+    stage('Clone Repository') {
+      steps {
+        git 'https://github.com/ayseyavas/webProje.git'
+      }
+    }
+    stage('Build Docker Image') {
+      steps {
+        sh 'docker build -t webProje .'
+      }
+    }
+    stage('Push Docker Image') {
+      steps {
+        // Ensure Docker is authenticated before pushing
+        sh 'docker login -u ayseyavass -p aaa12345.'
+        sh 'docker tag webProje ayseyavass/webProje:latest'
+        sh 'docker push ayseyavass/webProje:latest'
+      }
+    }
+    stage('Deploy to Kubernetes') {
+      steps {
+        sh 'helm upgrade --install webproje ./webProje/webProje-chart --namespace webproje'
+      }
+    }
+    stage('Check Deployment Status') {
+      steps {
+        script {
+          // Wait until the deployment is successful or fails after 5 minutes
+          def deploymentStatus = sh (
+            script: '''
+            kubectl rollout status deployment/webproje --timeout=300s
+            ''',
+            returnStatus: true
+          )
+
+          if (deploymentStatus == 0) {
+            echo 'Deployment succeeded!'
+          } else {
+            error('Deployment failed!')
+          }
+        }
+      }
+    }
+  }
+}
