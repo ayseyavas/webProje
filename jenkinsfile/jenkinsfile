@@ -13,28 +13,25 @@ pipeline {
     }
     stage('Push Docker Image') {
       steps {
-        // Ensure Docker is authenticated before pushing
-        sh 'docker login -u ayseyavass -p aaa12345.'
-        sh 'docker tag webProje ayseyavass/webProje:latest'
-        sh 'docker push ayseyavass/webProje:latest'
+        withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
+          sh 'docker tag webProje ayseyavass/webProje:latest'
+          sh 'docker push ayseyavass/webProje:latest'
+        }
       }
     }
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'helm upgrade --install webproje ./webProje/webProje-chart --namespace webproje'
+        sh 'helm upgrade --install webproje ./webProje-chart --namespace webproje'
       }
     }
     stage('Check Deployment Status') {
       steps {
         script {
-          // Wait until the deployment is successful or fails after 5 minutes
-          def deploymentStatus = sh (
-            script: '''
-            kubectl rollout status deployment/webproje --timeout=300s
-            ''',
+          def deploymentStatus = sh(
+            script: 'kubectl rollout status deployment/webproje --timeout=300s',
             returnStatus: true
           )
-
           if (deploymentStatus == 0) {
             echo 'Deployment succeeded!'
           } else {
