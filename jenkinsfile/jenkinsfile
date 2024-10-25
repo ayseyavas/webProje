@@ -1,7 +1,7 @@
 pipeline {
   agent any
   environment {
-    GITHUB_CREDENTIALS = credentials('07520621-3646-4fae-8063-574b454d2873')
+    GITHUB_CREDENTIALS = credentials('github-pass')
     DOCKER_USER = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6') // Docker Hub kullanýcý adý (Credentials ID)
     DOCKER_PASS = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6') // Docker Hub þifresi (Credentials ID)
   }
@@ -11,7 +11,9 @@ pipeline {
       steps {
         sh '''
           echo "Starting repository clone..."
-          git clone https://github.com/ayseyavas/webProje.git
+          git branch: 'main',
+          credentialsId: 'github-pass',
+          url: 'https://github.com/ayseyavas/webProje.git'
           echo "Repository clone completed successfully"
         '''
       }
