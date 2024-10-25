@@ -1,21 +1,20 @@
 pipeline {
   agent any
   environment {
-    GITHUB_CREDENTIALS = credentials('github-pass')
-    DOCKER_USER = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6') // Docker Hub kullanýcý adý (Credentials ID)
-    DOCKER_PASS = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6') // Docker Hub þifresi (Credentials ID)
+    GITHUB_CREDENTIALS = credentials('github-jenkins-token')
+    DOCKER_USER = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6')
+    DOCKER_PASS = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6')
   }
 
   stages {
     stage('Clone Repository') {
       steps {
-        sh '''
+        script {
           echo "Starting repository clone..."
-          git branch: 'main',
-          credentialsId: 'github-pass',
-          url: 'https://github.com/ayseyavas/webProje.git'
+          checkout([$class: 'GitSCM', branches: [[name: 'main']],
+            userRemoteConfigs: [[url: 'https://github.com/ayseyavas/webProje.git', credentialsId: 'github-jenkins-token']]])
           echo "Repository clone completed successfully"
-        '''
+        }
       }
     }
 
@@ -23,7 +22,6 @@ pipeline {
       steps {
         script {
           sh 'eval $(minikube docker-env)'
-          
           sh '''
             echo "Starting Docker build..."
             docker build -t webproje .
@@ -54,17 +52,9 @@ pipeline {
           kubectl apply -f k8s/Deployment.yaml
           kubectl apply -f k8s/Service.yaml
           echo "Kubernetes deployment completed"
-          
-          echo "Checking pod status..."
           kubectl get pods
-          
-          echo "Checking deployment details..."
           kubectl get deployments
-          
-          echo "Checking service status..."
           kubectl get services
-          
-          echo "Kubernetes deployment process completed"
         '''
       }
     }
