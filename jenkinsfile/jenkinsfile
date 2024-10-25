@@ -11,7 +11,7 @@ pipeline {
       steps {
         sh '''
           echo "Starting repository clone..."
-          git clone https://$GITHUB_CREDENTIALS_USR:$GITHUB_CREDENTIALS_PSW@github.com/ayseyavas/webProje.git
+          git clone https://github.com/ayseyavas/webProje.git
           echo "Repository clone completed successfully"
         '''
       }
