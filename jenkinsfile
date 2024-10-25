@@ -21,8 +21,9 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         script {
-          sh 'eval $(minikube docker-env)'
-          sh '''
+          // Use bat instead of sh for Windows commands
+          bat 'eval $(minikube docker-env)'
+          bat '''
             echo "Starting Docker build..."
             docker build -t webproje .
             echo "Docker image built successfully"
@@ -33,9 +34,9 @@ pipeline {
 
     stage('Push Docker Image') {
       steps {
-        sh '''
+        bat '''
           echo "Starting Docker image push..."
-          docker login -u $DOCKER_USER -p $DOCKER_PASS
+          docker login -u %DOCKER_USER% -p %DOCKER_PASS%
           echo "Docker login successful"
           docker tag webproje ayseyavass/webproje:latest
           echo "Image tagged successfully"
@@ -47,7 +48,7 @@ pipeline {
 
     stage('Deploy to Minikube') {
       steps {
-        sh '''
+        bat '''
           echo "Starting Kubernetes deployment..."
           kubectl apply -f k8s/Deployment.yaml
           kubectl apply -f k8s/Service.yaml
@@ -61,7 +62,7 @@ pipeline {
 
     stage('Check Deployment Status') {
       steps {
-        sh '''
+        bat '''
           echo "Checking rollout status..."
           if kubectl rollout status deployment/webproje --timeout=300s; then
             echo "Deployment succeeded! Application is ready."
@@ -76,10 +77,10 @@ pipeline {
 
   post {
     success {
-      sh 'echo "Pipeline executed successfully! All stages completed."'
+      bat 'echo "Pipeline executed successfully! All stages completed."'
     }
     failure {
-      sh 'echo "Pipeline failed! Check the logs above for errors."'
+      bat 'echo "Pipeline failed! Check the logs above for errors."'
     }
   }
 }
