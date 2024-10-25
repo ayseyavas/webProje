@@ -1,85 +1,70 @@
 pipeline {
-  agent any
-  environment {
-    GITHUB_CREDENTIALS = credentials('github-jenkins-token')
-    DOCKER_USER = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6')
-    DOCKER_PASS = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6')
-  }
+    agent any
+    environment {
+        GITHUB_CREDENTIALS = credentials('github-jenkins-token')
+        DOCKER_USER = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6')
+        DOCKER_PASS = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6')
+    }
 
-  stages {
-    stage('Clone Repository') {
-      steps {
-        script {
-          echo "Starting repository clone..."
-          checkout scm
-          echo "Repository clone completed successfully"
+    stages {
+        stage('Clone Repository') {
+            steps {
+                checkout scm
+            }
         }
-      }
-    }
 
-    stage('Build Docker Image') {
-      steps {
-        script {
-          // Use bat instead of sh for Windows commands
-          bat 'eval $(minikube docker-env)'
-          bat '''
-            echo "Starting Docker build..."
-            docker build -t webproje .
-            echo "Docker image built successfully"
-          '''
+        stage('Build Docker Image') {
+            steps {
+                bat '''
+                    eval $(minikube docker-env)
+                    docker build -t webproje .
+                '''
+            }
         }
-      }
+
+        stage('Push Docker Image') {
+            steps {
+                bat '''
+                    docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                    docker tag webproje webproje:dev
+                    docker push webproje:dev
+                '''
+            }
+        }
+
+        stage('Deploy to Minikube') {
+            steps {
+                bat '''
+                    kubectl apply -f k8s/Deployment.yaml
+                    kubectl apply -f k8s/Service.yaml
+                    kubectl get pods
+                    kubectl get deployments
+                    kubectl get services
+                '''
+            }
+        }
+
+        stage('Check Deployment Status') {
+            steps {
+                bat '''
+                    kubectl rollout status deployment/webproje --timeout=300s || exit 1
+                '''
+            }
+        }
+
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
     }
 
-    stage('Push Docker Image') {
-      steps {
-        bat '''
-          echo "Starting Docker image push..."
-          docker login -u %DOCKER_USER% -p %DOCKER_PASS%
-          echo "Docker login successful"
-          docker tag webproje ayseyavass/webproje:latest
-          echo "Image tagged successfully"
-          docker push ayseyavass/webproje:latest
-          echo "Image pushed to Docker Hub successfully"
-        '''
-      }
+    post {
+        success {
+            bat 'echo "Pipeline completed successfully."'
+        }
+        failure {
+            bat 'echo "Pipeline failed."'
+        }
     }
-
-    stage('Deploy to Minikube') {
-      steps {
-        bat '''
-          echo "Starting Kubernetes deployment..."
-          kubectl apply -f k8s/Deployment.yaml
-          kubectl apply -f k8s/Service.yaml
-          echo "Kubernetes deployment completed"
-          kubectl get pods
-          kubectl get deployments
-          kubectl get services
-        '''
-      }
-    }
-
-    stage('Check Deployment Status') {
-      steps {
-        bat '''
-          echo "Checking rollout status..."
-          if kubectl rollout status deployment/webproje --timeout=300s; then
-            echo "Deployment succeeded! Application is ready."
-          else
-            echo "Deployment failed! Check Kubernetes logs for details."
-            exit 1
-          fi
-        '''
-      }
-    }
-  }
-
-  post {
-    success {
-      bat 'echo "Pipeline executed successfully! All stages completed."'
-    }
-    failure {
-      bat 'echo "Pipeline failed! Check the logs above for errors."'
-    }
-  }
 }

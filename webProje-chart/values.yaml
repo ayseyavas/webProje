@@ -16,35 +16,35 @@ spec:
         app: webproje
     spec:
       containers:
-      - name: webproje
-        image: ayseyavass/webproje:latest
-        ports:
-        - containerPort: 80
-        env:
-        - name: POSTGRES_DB
-          value: VTKitapSatis
-        - name: POSTGRES_USER
-          value: postgres
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret 
-              key: password
-        - name: POSTGRES_HOST
-          value: postgres-service 
-        - name: POSTGRES_PORT
-          value: "5432" 
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
-        volumeMounts:
-        - name: webproje-volume
-          mountPath: /app/data
+        - name: webproje
+          image: webproje:dev
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POSTGRES_DB
+              value: VTKitapSatis
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: POSTGRES_HOST
+              value: postgres-service
+            - name: POSTGRES_PORT
+              value: "5432"
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - mountPath: /app/data
+              name: webproje-volume
       volumes:
-      - name: webproje-volume
-        persistentVolumeClaim:
-          claimName: webproje-pv-claim
+        - name: webproje-volume
+          persistentVolumeClaim:
+            claimName: webproje-pv-claim
