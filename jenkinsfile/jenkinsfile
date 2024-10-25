@@ -1,30 +1,17 @@
 pipeline {
   agent any
   environment {
-    GOOGLE_APPLICATION_CREDENTIALS = credentials('be9bf3aa-09c9-46a8-97ec-b8bc41fc0dc0') // GCP Service Account
-    CLUSTER_NAME = 'kobilcase-cluster' // Kubernetes Cluster Adý
-    CLUSTER_ZONE = 'us-central1' // Cluster Lokasyonu
+    GITHUB_TOKEN = credentials('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')
     DOCKER_USER = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6') // Docker Hub kullanýcý adý (Credentials ID)
     DOCKER_PASS = credentials('f3553d7d-faa2-41e3-90c5-ff37e59e2ff6') // Docker Hub þifresi (Credentials ID)
   }
 
   stages {
-    stage('Authenticate with GCP') {
-      steps {
-        script {
-          // GCP kimlik doðrulamasý
-          sh 'gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS'
-          sh 'gcloud config set project $PROJECT_ID'
-          sh 'gcloud container clusters get-credentials $CLUSTER_NAME --zone $CLUSTER_ZONE'
-        }
-      }
-    }
-
     stage('Clone Repository') {
       steps {
         sh '''
           echo "Starting repository clone..."
-          git clone https://github.com/ayseyavas/webProje.git
+          git clone https://$GITHUB_TOKEN@github.com/ayseyavas/webProje.git
           echo "Repository clone completed successfully"
         '''
       }
@@ -32,11 +19,15 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        sh '''
-          echo "Starting Docker build..."
-          docker build -t webProje .
-          echo "Docker image built successfully"
-        '''
+        script {
+          sh 'eval $(minikube docker-env)'
+          
+          sh '''
+            echo "Starting Docker build..."
+            docker build -t webproje .
+            echo "Docker image built successfully"
+          '''
+        }
       }
     }
 
@@ -46,29 +37,30 @@ pipeline {
           echo "Starting Docker image push..."
           docker login -u $DOCKER_USER -p $DOCKER_PASS
           echo "Docker login successful"
-          docker tag webProje ayseyavass/webProje:latest
+          docker tag webproje ayseyavass/webproje:latest
           echo "Image tagged successfully"
-          docker push ayseyavass/webProje:latest
+          docker push ayseyavass/webproje:latest
           echo "Image pushed to Docker Hub successfully"
         '''
       }
     }
 
-    stage('Deploy to Kubernetes') {
+    stage('Deploy to Minikube') {
       steps {
         sh '''
           echo "Starting Kubernetes deployment..."
-          helm upgrade --install webproje ./webProje-chart --namespace webproje --set image.repository=ayseyavass/webProje,image.tag=latest
-          echo "Helm deployment completed"
+          kubectl apply -f k8s/Deployment.yaml
+          kubectl apply -f k8s/Service.yaml
+          echo "Kubernetes deployment completed"
           
           echo "Checking pod status..."
-          kubectl get pods -n webproje
+          kubectl get pods
           
           echo "Checking deployment details..."
-          kubectl get deployments -n webproje
+          kubectl get deployments
           
           echo "Checking service status..."
-          kubectl get services -n webproje
+          kubectl get services
           
           echo "Kubernetes deployment process completed"
         '''
