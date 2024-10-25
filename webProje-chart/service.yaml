@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: webproje-service
+  namespace: odeon
   labels:
     app: webproje
 spec:
