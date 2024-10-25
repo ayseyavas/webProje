@@ -11,8 +11,7 @@ pipeline {
       steps {
         script {
           echo "Starting repository clone..."
-          checkout([$class: 'GitSCM', branches: [[name: 'main']],
-            userRemoteConfigs: [[url: 'https://github.com/ayseyavas/webProje.git', credentialsId: 'github-jenkins-token']]])
+          checkout scm
           echo "Repository clone completed successfully"
         }
       }
