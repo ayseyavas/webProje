@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="helm\" />
     <Folder Include="wwwroot\img\" />
   </ItemGroup>
 
